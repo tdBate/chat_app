@@ -1,10 +1,16 @@
+let socket=io();
+
 function init() {
     document.getElementById("btnMsgSend").addEventListener("click",msgSend);
     getMsg();
 }
 
+socket.on("msg-send",(msg)=>{
+     document.getElementById("msgBlock").innerHTML +="<br>"+msg;
+})
+
 function msgSend() {
-    console.log("a")
+    socket.emit("msg-send",document.getElementById("inpMsg").value);
 }
 
 async function getMsg() {

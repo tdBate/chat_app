@@ -1,18 +1,27 @@
 import express from "express";
 import path from "path";
 import { fileURLToPath } from 'url';
+import { Socket, Server } from "socket.io";
+import http from "http"
 
-//test mode on/off
-const test_mode = true;
-let test_path = "";
-if (test_mode) test_path = "test";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const base_path = path.join(__dirname, "..","client",test_path);
+const base_path = path.join(__dirname, "..","client");
+
+//server init
+const app = express();
+const server = http.createServer(app);
+const io = new Server(server);
+
+//socket-io
+io.on("connection",(socket)=>{
+    socket.on("msg-send",(msg)=>{
+        io.emit("msg-send",msg);
+    })
+})
 
 //server
-const app = express();
 app.use(express.static(base_path));
 
 app.get('/index',(req,res)=>{
@@ -23,6 +32,6 @@ app.get("/messages",(req,res)=>{
     res.status(200).send({"message":"tiktos üzenet"});
 })
 
-app.listen(3000, () => {
+server.listen(3000, () => {
     console.log("Listening on 3000...");
 });
