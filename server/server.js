@@ -3,6 +3,9 @@ import path from "path";
 import { fileURLToPath } from 'url';
 import { Socket, Server } from "socket.io";
 import http from "http"
+import { Message } from "./modules/Message.js";
+import fs from "node:fs";
+import { json } from "node:stream/consumers";
 
 
 const __filename = fileURLToPath(import.meta.url);
@@ -17,6 +20,7 @@ const io = new Server(server);
 //socket-io
 io.on("connection",(socket)=>{
     socket.on("msg-send",(msg)=>{
+        fs.appendFileSync(path.join(__dirname,"data","messages.csv"),";\n"+JSON.stringify(msg));
         io.emit("msg-send",msg);
     })
 })
@@ -29,7 +33,7 @@ app.get('/index',(req,res)=>{
 })
 
 app.get("/messages",(req,res)=>{
-    res.status(200).send({"message":"tiktos üzenet"});
+    res.status(200).send(fs.readFileSync(path.join(__dirname,"data","messages.csv")));
 })
 
 server.listen(3000, () => {
