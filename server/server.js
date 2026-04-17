@@ -5,8 +5,6 @@ import { Socket, Server } from "socket.io";
 import http from "http"
 import { Message } from "./modules/Message.js";
 import fs from "node:fs";
-import { json } from "node:stream/consumers";
-
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

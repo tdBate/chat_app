@@ -14,7 +14,7 @@ function init() {
 }
 
 socket.on("msg-send",(msg)=>{
-     document.getElementById("msgBlock").innerHTML +="<br>"+msg.message;
+     displayMessage(msg.message);
 })
 
 function msgSend() {
@@ -22,11 +22,19 @@ function msgSend() {
     socket.emit("msg-send",m1);
 }
 
+function displayMessage(text) {
+    const block = document.getElementById("msgBlock");
+    const message = document.createElement("li");
+    message.textContent = text;
+    
+    block.appendChild(message);
+}
+
 async function getMsg() {
     const response = await fetch("/messages");
     const data = await response.text();
     data.split(";").forEach(element => {
-        document.getElementById("msgBlock").innerHTML += "<br>"+JSON.parse(element).message; 
+        displayMessage(JSON.parse(element).message); 
     });
 }
 

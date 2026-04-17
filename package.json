@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "setup": "npm install --prefix client && npm install --prefix server"
+    "setup": "npm install --prefix server"
   },
   "keywords": [],
   "author": "",
