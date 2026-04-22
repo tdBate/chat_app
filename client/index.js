@@ -7,21 +7,33 @@ class Message {
     }
 }
 
-let socket=io();
+let socket;
 
 function init() {
-    document.getElementById("btnMsgSend").addEventListener("click",msgSend);
+    document.getElementById("btnMsgSend").addEventListener("click", msgSend);
+    document.getElementById("btnConnect").addEventListener("click", connectToSocket);
     getMsg();
 }
 
-socket.on("msg-send",(msg)=>{
-     displayMessage(msg.message);
+
+
+function connectToSocket() {
+    socket = io("", {
+        auth: {
+            username: document.getElementById("inpUserName").value,
+            password: document.getElementById("inpPassword").value
+        }
+    })
+
+    socket.on("msg-send", (msg) => {
+    displayMessage(msg.message);
 })
+}
 
 function msgSend() {
     const toUserId = document.getElementById("inpToUserId").value;
-    m1 = new Message(document.getElementById("inpMsg").value,new Date(),0,toUserId);
-    socket.emit("msg-send",m1);
+    m1 = new Message(document.getElementById("inpMsg").value, new Date(), 0, toUserId);
+    socket.emit("msg-send", m1);
     displayMessage(m1.message);
 }
 
@@ -29,7 +41,7 @@ function displayMessage(text) {
     const block = document.getElementById("msgBlock");
     const message = document.createElement("li");
     message.textContent = text;
-    
+
     block.appendChild(message);
 }
 
@@ -37,8 +49,8 @@ async function getMsg() {
     const response = await fetch("/messages");
     const data = await response.text();
     data.split(";").forEach(element => {
-        displayMessage(JSON.parse(element).message); 
+        displayMessage(JSON.parse(element).message);
     });
 }
 
-document.addEventListener("DOMContentLoaded",init);
+document.addEventListener("DOMContentLoaded", init);

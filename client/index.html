@@ -9,11 +9,15 @@
     <script src="https://cdn.socket.io/4.8.3/socket.io.min.js" integrity="sha384-kzavj5fiMwLKzzD1f8S7TeoVIEi7uKHvbTA3ueZkrzYq75pNQUiUi6Dy98Q3fxb0" crossorigin="anonymous"></script>
     <link rel="stylesheet" href="style.css">
     <script src="index.js"></script>
-    <input type="text" id="inpToUserId">
+    <label>Username</label><br>
+    <input id="inpUserName" type="text"><br>
+    <label>Password</label><br>
+    <input id="inpPassword" type="text"><br>
+    <button id="btnConnect">Connect</button>
     <h1>Mukodik</h1>
-    
     <div id="form">
-        <input type="text" id="inpMsg">
+        <input type="text" id="inpMsg"><br>
+        <label>Send to:</label><input type="text" id="inpToUserId">
         <button id="btnMsgSend">Send</button>
     </div>
     <ul id="msgBlock"></ul>
