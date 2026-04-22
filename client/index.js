@@ -1,8 +1,9 @@
 class Message {
-    constructor(message, date, user_id) {
+    constructor(message, date, user_id, toId) {
         this.message = message;
         this.date = Date(date);
         this.user_id = user_id;
+        this.toId = toId;
     }
 }
 
@@ -18,8 +19,10 @@ socket.on("msg-send",(msg)=>{
 })
 
 function msgSend() {
-    m1 = new Message(document.getElementById("inpMsg").value,new Date(),0);
+    const toUserId = document.getElementById("inpToUserId").value;
+    m1 = new Message(document.getElementById("inpMsg").value,new Date(),0,toUserId);
     socket.emit("msg-send",m1);
+    displayMessage(m1.message);
 }
 
 function displayMessage(text) {

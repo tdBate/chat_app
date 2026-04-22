@@ -16,10 +16,13 @@ const server = http.createServer(app);
 const io = new Server(server);
 
 //socket-io
+let users = [];
 io.on("connection",(socket)=>{
+    const id = users.push(socket);
+    console.log("id: "+id);
     socket.on("msg-send",(msg)=>{
         fs.appendFileSync(path.join(__dirname,"data","messages.csv"),";\n"+JSON.stringify(msg));
-        io.emit("msg-send",msg);
+        users[msg.toId-1].emit("msg-send",msg);
     })
 })
 
