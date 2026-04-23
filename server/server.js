@@ -15,6 +15,8 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
+//fs.writeFileSync(path.join(__dirname,"data","messages.json"),'[{"id": 1,"messages": []}, {"id": 2,"messages": []},{"id": 3,"messages": []}]') //reset messages TEMP!!!!!!!! REMOVE!!!!
+
 //socket-io
 io.use((socket, next) => {
     const username = socket.handshake.auth.username;
@@ -35,15 +37,22 @@ io.use((socket, next) => {
 let users = [];
 io.on("connection", (socket) => {
     const id = users.push(socket);
+    socket.emit("send-id-init",socket.id);
     console.log(socket.username +"-"+socket.id+ " connected");
     socket.on("msg-send", (msg) => {
-        fs.appendFileSync(path.join(__dirname, "data", "messages.csv"), ";\n" + JSON.stringify(msg));
         users.forEach(element => {
-            if (element.id == msg.toId) {                
+            if (element.id == msg.toId) {      
                 element.emit("msg-send", msg);
+                saveMessage(msg);
+                return;
             }
         });
         //users[msg.toId - 1].emit("msg-send", msg);
+    })
+
+    socket.on("disconnect",()=>{
+        console.log(socket.username +"-"+socket.id+ " disconnected");
+        users.splice(users.indexOf(socket),1);
     })
 })
 
@@ -55,9 +64,33 @@ app.get('/index', (req, res) => {
 })
 
 app.get("/messages", (req, res) => {
-    res.status(200).send(fs.readFileSync(path.join(__dirname, "data", "messages.csv")));
+    const json_path = path.join(__dirname,"data","messages.json");
+    let data = JSON.parse(fs.readFileSync(json_path).toString());
+    data.forEach(element=>{
+        if (element.id == req.query.id) {res.status(200).send(element.messages);}
+    })
+})
+
+app.get("/users", (req, res)=>{
+    const users = JSON.parse(fs.readFileSync(path.join(__dirname,"data","users.json")).toString());
+    res.status(200).send(users);
 })
 
 server.listen(3000, () => {
     console.log("Listening on 3000...");
 });
+
+
+//functions
+
+function saveMessage(msg) {
+    const json_path = path.join(__dirname,"data","messages.json");
+    let data = JSON.parse(fs.readFileSync(json_path).toString());
+    data.forEach(element=>{
+        if (element.id == msg.toId || element.id == msg.user_id) {
+            element.messages.push(msg);
+        }
+    })
+    
+    fs.writeFileSync(json_path,JSON.stringify(data));
+}
