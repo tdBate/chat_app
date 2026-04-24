@@ -43,10 +43,9 @@ io.on("connection", (socket) => {
         users.forEach(element => {
             if (element.id == msg.toId) {      
                 element.emit("msg-send", msg);
-                saveMessage(msg);
-                return;
             }
         });
+        saveMessage(msg);
         //users[msg.toId - 1].emit("msg-send", msg);
     })
 

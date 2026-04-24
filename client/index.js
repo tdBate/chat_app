@@ -10,6 +10,7 @@ class Message {
 let socket;
 let self_id;
 let messages;
+let selectedId;
 
 function init() {
     document.getElementById("btnMsgSend").addEventListener("click", msgSend);
@@ -25,12 +26,12 @@ function connectToSocket() {
     })
 
     socket.on("msg-send", (msg) => {
-        displayMessage(msg);
+        messages.push(msg);
+        if (selectedId == msg.user_id) displayMessage(msg);
     })
 
     socket.on("send-id-init", (id) => {
         self_id = parseInt(id);
-        console.log("id recieved")
         getMsg();
         getUsers();
     })
@@ -41,6 +42,7 @@ function msgSend(e) {
     e.preventDefault();
     const toUserId = parseInt(document.getElementById("inpToUserId").value);
     m1 = new Message(document.getElementById("inpMsg").value, new Date(), self_id, toUserId);
+    messages.push(m1);
     socket.emit("msg-send", m1);
     displayMessage(m1);
 }
@@ -58,35 +60,34 @@ async function getUsers() {
     const users = await response.json();
 
     const userBlock = document.getElementById("users");
-    users.forEach(element=>{
-        const button = document.createElement("button");
-        button.textContent = element.username;
-        button.onclick = ()=>{
-            switchSelectedUser(element);
+    userBlock.innerHTML = "";
+    users.forEach(element => {
+        if (element.id != self_id) {
+            const button = document.createElement("button");
+            button.textContent = element.username;
+            button.onclick = () => {
+                switchSelectedUser(element);
+            }
+            userBlock.appendChild(button);
         }
-        userBlock.appendChild(button);
     })
 }
 
 function switchSelectedUser(user) {
+    selectedId = user.id;
+    document.getElementById("inpToUserId").value = selectedId;
     document.getElementById("msgBlock").innerHTML = "";
-    messages.forEach(element=>{
-        console.log(element)
-        if (element.toId == user.id && element.user_id == self_id) {
+    messages.forEach(element => {
+        if ((element.toId == user.id && element.user_id == self_id) || (element.toId == self_id && element.user_id == user.id)) {
             displayMessage(element);
         }
     });
 }
 
 async function getMsg() {
-    console.log("getmsg")
     const response = await fetch("/messages/?id=" + self_id);
-    console.log("/messages/?id=" + self_id);
     const data = await response.json();
     messages = data;
-    data.forEach(element => {
-        displayMessage(element);
-    });
 }
 
 document.addEventListener("DOMContentLoaded", init);
