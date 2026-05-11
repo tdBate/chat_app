@@ -13,15 +13,15 @@ let messages;
 let selectedId;
 
 function init() {
-    document.getElementById("btnMsgSend").addEventListener("click", msgSend);
+    //document.getElementById("btnMsgSend").addEventListener("click", msgSend);
     document.getElementById("btnConnect").addEventListener("click", connectToSocket);
 }
 
 function connectToSocket() {
     socket = io("", {
         auth: {
-            username: document.getElementById("inpUserName").value,
-            password: document.getElementById("inpPassword").value
+            username: document.getElementById("login-email").value,
+            password: document.getElementById("login-password").value
         }
     })
 
@@ -32,10 +32,20 @@ function connectToSocket() {
 
     socket.on("send-id-init", (id) => {
         self_id = parseInt(id);
-        getMsg();
-        getUsers();
+        enterApp();
     })
 
+}
+
+function enterApp() {
+    getMsg();
+    getUsers();
+
+    document.getElementById("page-auth").classList.remove("active");
+    document.getElementById("page-auth").classList.add("hidden");
+    document.getElementById("page-app").classList.remove("hidden");
+    document.getElementById("page-app").classList.add("active");
+    showView("empty");
 }
 
 function msgSend(e) {
@@ -59,29 +69,72 @@ async function getUsers() {
     const response = await fetch("/users");
     const users = await response.json();
 
-    const userBlock = document.getElementById("users");
-    userBlock.innerHTML = "";
+    const container = document.getElementById("sidebar-users");
+    container.innerHTML = "";
     users.forEach(element => {
         if (element.id != self_id) {
-            const button = document.createElement("button");
-            button.textContent = element.username;
-            button.onclick = () => {
+            const item = document.createElement("div");
+            item.className = "user-item"
+            item.innerHTML = `
+            <div class="avatar">${element.username.charAt(0)}</div>
+                <div class="user-item-info">
+                <div class="user-item-name">${element.username}</div>
+                <div class="user-item-preview">atp bro</div>
+            </div>
+            <div class="online-dot"></div>`;
+            item.onclick = () => {
                 switchSelectedUser(element);
             }
-            userBlock.appendChild(button);
+            container.appendChild(item);
         }
     })
 }
 
 function switchSelectedUser(user) {
     selectedId = user.id;
-    document.getElementById("inpToUserId").value = selectedId;
-    document.getElementById("msgBlock").innerHTML = "";
+    renderDMMessages(user);
+    showView("dm");
+    /*
     messages.forEach(element => {
         if ((element.toId == user.id && element.user_id == self_id) || (element.toId == self_id && element.user_id == user.id)) {
             displayMessage(element);
         }
+    });*/
+}
+
+function renderDMMessages(user) {
+    const list = document.getElementById("dm-messages");
+    list.innerHTML = "";
+    messages.forEach(element => {
+        if (((element.toId == user.id && element.user_id == self_id) || (element.toId == self_id && element.user_id == user.id))) {
+            const row = document.createElement("div");
+    
+            row.className = "bubble-row";
+            //is own?
+            if (element.user_id == self_id) {
+                row.className += " own";
+            }
+
+            row.innerHTML = `
+                <div class="avatar" style="width:28px;height:28px;font-size:0.78rem;">a</div>
+                <div>
+                    <div class="bubble">${element.message}</div>
+                    <div class="bubble-time">${element.date}</div>
+                </div>`;
+            list.appendChild(row);
+        }
+    })
+}
+
+function showView(name) {
+    document.querySelectorAll(".view").forEach(v => {
+        v.classList.remove("active");
+        v.classList.add("hidden");
     });
+
+    const target = document.getElementById("view-" + name);
+    target.classList.remove("hidden");
+    target.classList.add("active");
 }
 
 async function getMsg() {
