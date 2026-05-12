@@ -17,7 +17,7 @@ function init() {
     document.getElementById("btn-send").addEventListener("click", msgSend);
     document.getElementById("btnConnect").addEventListener("click", connectToSocket);
     document.getElementById("dm-input").onkeydown = (e) => {
-        if (e.key == "Enter") msgSend();
+        if (e.key == "Enter") {msgSend();}
     }
 }
 
@@ -31,7 +31,7 @@ function connectToSocket() {
 
     socket.on("msg-send", (msg) => {
         messages.push(msg);
-        if (selectedId == msg.user_id) displayMessage(msg);
+        if (selectedId == msg.user_id) renderDMMessages(getUserFromId(msg.user_id));
     })
 
     socket.on("send-id-init", (id) => {
