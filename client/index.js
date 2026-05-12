@@ -11,10 +11,14 @@ let socket;
 let self_id;
 let messages;
 let selectedId;
+let users;
 
 function init() {
-    //document.getElementById("btnMsgSend").addEventListener("click", msgSend);
+    document.getElementById("btn-send").addEventListener("click", msgSend);
     document.getElementById("btnConnect").addEventListener("click", connectToSocket);
+    document.getElementById("dm-input").onkeydown = (e) => {
+        if (e.key == "Enter") msgSend();
+    }
 }
 
 function connectToSocket() {
@@ -49,12 +53,14 @@ function enterApp() {
 }
 
 function msgSend(e) {
+    if (!selectedId) return;
     e.preventDefault();
-    const toUserId = parseInt(document.getElementById("inpToUserId").value);
-    m1 = new Message(document.getElementById("inpMsg").value, new Date(), self_id, toUserId);
+    const toUserId = selectedId;
+    m1 = new Message(document.getElementById("dm-input").value, new Date(), self_id, toUserId);
     messages.push(m1);
     socket.emit("msg-send", m1);
-    displayMessage(m1);
+
+    renderDMMessages(getUserFromId(toUserId));
 }
 
 function displayMessage(msg) {
@@ -67,7 +73,7 @@ function displayMessage(msg) {
 
 async function getUsers() {
     const response = await fetch("/users");
-    const users = await response.json();
+    users = await response.json();
 
     const container = document.getElementById("sidebar-users");
     container.innerHTML = "";
@@ -90,6 +96,10 @@ async function getUsers() {
     })
 }
 
+function getUserFromId(id) {
+    return users.find(element=> parseInt(element.id) == id);
+}
+
 function switchSelectedUser(user) {
     selectedId = user.id;
     renderDMMessages(user);
@@ -105,10 +115,11 @@ function switchSelectedUser(user) {
 function renderDMMessages(user) {
     const list = document.getElementById("dm-messages");
     list.innerHTML = "";
+    console.log(user)
     messages.forEach(element => {
         if (((element.toId == user.id && element.user_id == self_id) || (element.toId == self_id && element.user_id == user.id))) {
             const row = document.createElement("div");
-    
+
             row.className = "bubble-row";
             //is own?
             if (element.user_id == self_id) {
@@ -124,6 +135,7 @@ function renderDMMessages(user) {
             list.appendChild(row);
         }
     })
+    list.scrollTop = list.scrollHeight; //scroll to bottom
 }
 
 function showView(name) {
