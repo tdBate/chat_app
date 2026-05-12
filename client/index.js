@@ -23,11 +23,22 @@ function init() {
 
 async function connectToSocket() {
     const promise = await Notification.requestPermission();
+
     socket = io("", {
         auth: {
             username: document.getElementById("login-email").value,
             password: document.getElementById("login-password").value
         }
+    })
+
+    socket.on("user-connected", (id)=>{
+        document.getElementById(id+"-dot").className = "";
+        document.getElementById(id + "-dot").classList.add("online-dot")
+    })
+
+    socket.on("user-disconnected", (id) => {
+        document.getElementById(id + "-dot").className = "";
+        document.getElementById(id + "-dot").classList.add("offline-dot")
     })
 
     socket.on("msg-send", (msg) => {
@@ -106,8 +117,14 @@ async function getUsers() {
 
     const container = document.getElementById("sidebar-users");
     container.innerHTML = "";
-    users.forEach(element => {
+    users.forEach(async(element) => {
         if (element.id != self_id) {
+            //is user active
+            let dotClass = "offline-dot";
+            const response = await fetch("/isuseractive/?id="+element.id);
+            const state = await response.text();
+            if (state == "true") {dotClass = "online-dot";}
+
             const item = document.createElement("div");
             item.className = "user-item"
             item.innerHTML = `
@@ -116,7 +133,7 @@ async function getUsers() {
                 <div class="user-item-name">${element.username}</div>
                 <div class="user-item-preview"></div>
             </div>
-            <div class="online-dot"></div>`;
+            <div id="${element.id}-dot" class="${dotClass}"></div>`;
             item.onclick = () => {
                 try { container.querySelector(".active").classList.remove("active"); } catch{}
                 item.classList.add("active");
@@ -161,11 +178,11 @@ function renderDMMessages(user) {
             let dateDisplayString = "error";
 
             if (date.getFullYear() == now.getFullYear() && date.getMonth() == now.getMonth() && date.getDate() == now.getDate()) {
-                dateDisplayString = date.getHours()+":"+date.getMinutes();
+                dateDisplayString = date.getHours().toString().padStart(2, "0") + ":" + date.getMinutes().toString().padStart(2, "0");
             } else if (date.getFullYear() == now.getFullYear() && date.getMonth() == now.getMonth() && date.getDate() == (now.getDate()-1)) {
-                dateDisplayString = "yesterday " + date.getHours() + ":" + date.getMinutes();
+                dateDisplayString = "yesterday " + date.getHours().toString().padStart(2, "0") + ":" + date.getMinutes().toString().padStart(2, "0");
             } else {
-                dateDisplayString = date.getFullYear() + ". " + date.getMonth() + ". " + date.getDate() +". " + date.getHours() + ":" + date.getMinutes();
+                dateDisplayString = date.getFullYear() + ". " + date.getMonth() + ". " + date.getDate() + ". " + date.getHours().toString().padStart(2, "0") + ":" + date.getMinutes().toString().padStart(2, "0");
             }
             
             row.innerHTML = `
@@ -195,6 +212,14 @@ async function getMsg() {
     const response = await fetch("/messages/?id=" + self_id);
     const data = await response.json();
     messages = data;
+}
+
+function toggleTheme() {
+    document.body.classList.toggle("light");
+
+    // mentés
+    const isLight = document.body.classList.contains("light");
+    localStorage.setItem("theme", isLight ? "light" : "dark");
 }
 
 document.addEventListener("DOMContentLoaded", init);

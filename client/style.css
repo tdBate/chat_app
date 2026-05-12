@@ -285,6 +285,14 @@ input:disabled { opacity: 0.45; cursor: not-allowed; }
   flex-shrink: 0;
 }
 
+.offline-dot {
+  width: 7px;
+  height: 7px;
+  background: var(--error);
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
 .sidebar-footer {
   padding: 12px 14px;
   border-top: 1px solid var(--border);

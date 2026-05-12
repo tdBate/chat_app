@@ -39,6 +39,7 @@ io.on("connection", (socket) => {
     const id = users.push(socket);
     socket.emit("send-id-init",socket.id);
     console.log(socket.username +"-"+socket.id+ " connected");
+    socket.broadcast.emit("user-connected", socket.id);
     socket.on("msg-send", (msg) => {
         users.forEach(element => {
             if (element.id == msg.toId) {      
@@ -52,6 +53,7 @@ io.on("connection", (socket) => {
     socket.on("disconnect",()=>{
         console.log(socket.username +"-"+socket.id+ " disconnected");
         users.splice(users.indexOf(socket),1);
+        socket.broadcast.emit("user-disconnected", socket.id);
     })
 })
 
@@ -73,6 +75,11 @@ app.get("/messages", (req, res) => {
 app.get("/users", (req, res)=>{
     const users = JSON.parse(fs.readFileSync(path.join(__dirname,"data","users.json")).toString());
     res.status(200).send(users);
+})
+
+app.get("/isuseractive",(req,res)=>{
+    if (users.some(user=> user.id==req.query.id)) {res.status(200).send(true); return;}
+    res.status(200).send(false);
 })
 
 server.listen(3000, () => {
