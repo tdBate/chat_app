@@ -21,7 +21,8 @@ function init() {
     }
 }
 
-function connectToSocket() {
+async function connectToSocket() {
+    const promise = await Notification.requestPermission();
     socket = io("", {
         auth: {
             username: document.getElementById("login-email").value,
@@ -31,7 +32,22 @@ function connectToSocket() {
 
     socket.on("msg-send", (msg) => {
         messages.push(msg);
-        if (selectedId == msg.user_id) renderDMMessages(getUserFromId(msg.user_id));
+        const fromUser = getUserFromId(msg.user_id);
+        if (selectedId == msg.user_id) {
+            renderDMMessages(fromUser)
+        } else {
+            const notification = new Notification(`New message from ${fromUser.username}`, {
+                body: msg.message
+            });
+            notification.onclick = ()=>{switchSelectedUser(fromUser);}
+        };
+
+        if (document.hidden) {
+            const notification = new Notification(`New message from ${fromUser.username}`, {
+                body: msg.message
+            });
+            notification.onclick = () => { switchSelectedUser(fromUser); }
+        } //ezt szépíteni
     })
 
     socket.on("send-id-init", (id) => {
