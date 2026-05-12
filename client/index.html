@@ -71,14 +71,14 @@
 
             <!-- Lábléc: profil + kilépés -->
             <div class="sidebar-footer">
-                <div class="user-chip" onclick="openProfile()" title="Profil">
-                    <div class="avatar" id="sidebar-avatar">T</div>
+                <div class="user-chip" title="Profil">
+                    <div class="avatar prevent-select" id="sidebar-avatar">T</div>
                     <div class="user-chip-info">
                         <span class="user-chip-name" id="sidebar-username">Felhasználó</span>
                         <span class="user-chip-sub">Profil megtekintése</span>
                     </div>
                 </div>
-                <button class="btn-logout" onclick="handleLogout()">Kilépés</button>
+                <button class="btn-logout">Kilépés</button>
             </div>
         </aside>
 
@@ -93,12 +93,12 @@
             <!-- DM chat -->
             <div id="view-dm" class="view hidden dm-view">
                 <div class="chat-header">
-                    <div class="avatar" id="chat-avatar">?</div>
+                    <div class="avatar prevent-select" id="chat-avatar">?</div>
                     <span id="chat-name">Felhasználó</span>
                 </div>
                 <div class="messages-list" id="dm-messages"></div>
                 <div class="message-input-row">
-                    <input type="text" id="dm-input" placeholder="Írj üzenetet..." />
+                    <input autocomplete="off" type="text" id="dm-input" placeholder="Írj üzenetet..." />
                     <button id="btn-send" class="btn-send">Küldés</button>
                 </div>
             </div>
@@ -109,7 +109,7 @@
                     <span>Profil</span>
                 </div>
                 <div class="profile-body">
-                    <div class="profile-avatar-big" id="profile-avatar">T</div>
+                    <div class="profile-avatar-big prevent-select" id="profile-avatar">T</div>
                     <div class="profile-fields">
                         <div class="form-group">
                             <label>Felhasználónév</label>

@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "setup": "npm install --prefix server",
+    "setup": "cd server && cd modules && node clear_messages.js && cd .. && cd .. && npm install --prefix server",
     "server":"node server",
     "clear-msg": "cd server && cd modules && node clear_messages.js"
   },

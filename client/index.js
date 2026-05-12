@@ -1,7 +1,7 @@
 class Message {
     constructor(message, date, user_id, toId) {
         this.message = message;
-        this.date = Date(date);
+        this.date = date;
         this.user_id = user_id;
         this.toId = toId;
     }
@@ -17,7 +17,7 @@ function init() {
     document.getElementById("btn-send").addEventListener("click", msgSend);
     document.getElementById("btnConnect").addEventListener("click", connectToSocket);
     document.getElementById("dm-input").onkeydown = (e) => {
-        if (e.key == "Enter") {msgSend();}
+        if (e.key == "Enter") {msgSend(e);}
     }
 }
 
@@ -35,7 +35,7 @@ async function connectToSocket() {
         const fromUser = getUserFromId(msg.user_id);
         if (selectedId == msg.user_id) {
             renderDMMessages(fromUser)
-        } else {
+        } else if (!document.hidden) {
             const notification = new Notification(`New message from ${fromUser.username}`, {
                 body: msg.message
             });
@@ -58,6 +58,11 @@ async function connectToSocket() {
 }
 
 function enterApp() {
+    //profile footer
+    const username = document.getElementById("login-email").value;
+    document.getElementById("sidebar-username").innerText = username;
+    document.getElementById("sidebar-avatar").innerText = username.charAt(0);
+
     getMsg();
     getUsers();
 
@@ -65,18 +70,26 @@ function enterApp() {
     document.getElementById("page-auth").classList.add("hidden");
     document.getElementById("page-app").classList.remove("hidden");
     document.getElementById("page-app").classList.add("active");
+
     showView("empty");
 }
 
 function msgSend(e) {
     if (!selectedId) return;
+
+    const text = document.getElementById("dm-input").value;
+    if (!text) return;
+
     e.preventDefault();
     const toUserId = selectedId;
-    m1 = new Message(document.getElementById("dm-input").value, new Date(), self_id, toUserId);
+    m1 = new Message(text, new Date().toISOString(), self_id, toUserId);
     messages.push(m1);
     socket.emit("msg-send", m1);
 
     renderDMMessages(getUserFromId(toUserId));
+
+    //clear input
+    document.getElementById("dm-input").value = "";
 }
 
 function displayMessage(msg) {
@@ -98,13 +111,15 @@ async function getUsers() {
             const item = document.createElement("div");
             item.className = "user-item"
             item.innerHTML = `
-            <div class="avatar">${element.username.charAt(0)}</div>
+            <div class="avatar prevent-select">${element.username.charAt(0)}</div>
                 <div class="user-item-info">
                 <div class="user-item-name">${element.username}</div>
-                <div class="user-item-preview">atp bro</div>
+                <div class="user-item-preview"></div>
             </div>
             <div class="online-dot"></div>`;
             item.onclick = () => {
+                try { container.querySelector(".active").classList.remove("active"); } catch{}
+                item.classList.add("active");
                 switchSelectedUser(element);
             }
             container.appendChild(item);
@@ -118,20 +133,17 @@ function getUserFromId(id) {
 
 function switchSelectedUser(user) {
     selectedId = user.id;
+
+    document.getElementById("chat-avatar").textContent = user.username.charAt(0);
+    document.getElementById("chat-name").textContent = user.username;
+
     renderDMMessages(user);
     showView("dm");
-    /*
-    messages.forEach(element => {
-        if ((element.toId == user.id && element.user_id == self_id) || (element.toId == self_id && element.user_id == user.id)) {
-            displayMessage(element);
-        }
-    });*/
 }
 
 function renderDMMessages(user) {
     const list = document.getElementById("dm-messages");
     list.innerHTML = "";
-    console.log(user)
     messages.forEach(element => {
         if (((element.toId == user.id && element.user_id == self_id) || (element.toId == self_id && element.user_id == user.id))) {
             const row = document.createElement("div");
@@ -142,11 +154,25 @@ function renderDMMessages(user) {
                 row.className += " own";
             }
 
+            //date
+            const date = new Date(element.date);
+            const now = new Date();
+
+            let dateDisplayString = "error";
+
+            if (date.getFullYear() == now.getFullYear() && date.getMonth() == now.getMonth() && date.getDate() == now.getDate()) {
+                dateDisplayString = date.getHours()+":"+date.getMinutes();
+            } else if (date.getFullYear() == now.getFullYear() && date.getMonth() == now.getMonth() && date.getDate() == (now.getDate()-1)) {
+                dateDisplayString = "yesterday " + date.getHours() + ":" + date.getMinutes();
+            } else {
+                dateDisplayString = date.getFullYear() + ". " + date.getMonth() + ". " + date.getDate() +". " + date.getHours() + ":" + date.getMinutes();
+            }
+            
             row.innerHTML = `
-                <div class="avatar" style="width:28px;height:28px;font-size:0.78rem;">a</div>
+                <div class="avatar prevent-select" style="width:28px;height:28px;font-size:0.78rem;">a</div>
                 <div>
                     <div class="bubble">${element.message}</div>
-                    <div class="bubble-time">${element.date}</div>
+                    <div class="bubble-time">${dateDisplayString}</div>
                 </div>`;
             list.appendChild(row);
         }

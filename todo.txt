@@ -1,2 +1,2 @@
-dates
-page hidden notification
+light mode dark mode
+message preview
