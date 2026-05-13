@@ -166,10 +166,16 @@ function renderDMMessages(user) {
             const row = document.createElement("div");
 
             row.className = "bubble-row";
+            let avatarId = element.user_id;
             //is own?
             if (element.user_id == self_id) {
                 row.className += " own";
+                //avatarId = element.user_id;
             }
+            
+            
+
+            
 
             //date
             const date = new Date(element.date);
@@ -186,7 +192,7 @@ function renderDMMessages(user) {
             }
             
             row.innerHTML = `
-                <div class="avatar prevent-select" style="width:28px;height:28px;font-size:0.78rem;">a</div>
+                <div class="avatar prevent-select" style="width:28px;height:28px;font-size:0.78rem;">${getUserFromId(avatarId).username.charAt(0)}</div>
                 <div>
                     <div class="bubble">${element.message}</div>
                     <div class="bubble-time">${dateDisplayString}</div>

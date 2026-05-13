@@ -22,7 +22,7 @@ io.use((socket, next) => {
     const username = socket.handshake.auth.username;
     const password = socket.handshake.auth.password;
     if (!username) return;
-    const users = JSON.parse(fs.readFileSync(path.join(__dirname,"data","users.json")).toString());
+    const users = JSON.parse(fs.readFileSync(path.join(__dirname, "data", "users.json")).toString());
     users.forEach(element => {
         if (element.username == username && element.password == password) {
             socket.username = username;
@@ -37,12 +37,15 @@ io.use((socket, next) => {
 let users = [];
 io.on("connection", (socket) => {
     const id = users.push(socket);
-    socket.emit("send-id-init",socket.id);
-    console.log(socket.username +"-"+socket.id+ " connected");
+    socket.emit("send-id-init", socket.id);
+    console.log(socket.username + "-" + socket.id + " connected");
     socket.broadcast.emit("user-connected", socket.id);
+
+    //message send
     socket.on("msg-send", (msg) => {
+        if (!msg.message) return;
         users.forEach(element => {
-            if (element.id == msg.toId) {      
+            if (element.id == msg.toId) {
                 element.emit("msg-send", msg);
             }
         });
@@ -50,9 +53,9 @@ io.on("connection", (socket) => {
         //users[msg.toId - 1].emit("msg-send", msg);
     })
 
-    socket.on("disconnect",()=>{
-        console.log(socket.username +"-"+socket.id+ " disconnected");
-        users.splice(users.indexOf(socket),1);
+    socket.on("disconnect", () => {
+        console.log(socket.username + "-" + socket.id + " disconnected");
+        users.splice(users.indexOf(socket), 1);
         socket.broadcast.emit("user-disconnected", socket.id);
     })
 })
@@ -65,20 +68,20 @@ app.get('/index', (req, res) => {
 })
 
 app.get("/messages", (req, res) => {
-    const json_path = path.join(__dirname,"data","messages.json");
+    const json_path = path.join(__dirname, "data", "messages.json");
     let data = JSON.parse(fs.readFileSync(json_path).toString());
-    data.forEach(element=>{
-        if (element.id == req.query.id) {res.status(200).send(element.messages);}
+    data.forEach(element => {
+        if (element.id == req.query.id) { res.status(200).send(element.messages); }
     })
 })
 
-app.get("/users", (req, res)=>{
-    const users = JSON.parse(fs.readFileSync(path.join(__dirname,"data","users.json")).toString());
+app.get("/users", (req, res) => {
+    const users = JSON.parse(fs.readFileSync(path.join(__dirname, "data", "users.json")).toString());
     res.status(200).send(users);
 })
 
-app.get("/isuseractive",(req,res)=>{
-    if (users.some(user=> user.id==req.query.id)) {res.status(200).send(true); return;}
+app.get("/isuseractive", (req, res) => {
+    if (users.some(user => user.id == req.query.id)) { res.status(200).send(true); return; }
     res.status(200).send(false);
 })
 
@@ -90,13 +93,13 @@ server.listen(3000, () => {
 //functions
 
 function saveMessage(msg) {
-    const json_path = path.join(__dirname,"data","messages.json");
+    const json_path = path.join(__dirname, "data", "messages.json");
     let data = JSON.parse(fs.readFileSync(json_path).toString());
-    data.forEach(element=>{
+    data.forEach(element => {
         if (element.id == msg.toId || element.id == msg.user_id) {
             element.messages.push(msg);
         }
     })
-    
-    fs.writeFileSync(json_path,JSON.stringify(data));
+
+    fs.writeFileSync(json_path, JSON.stringify(data));
 }

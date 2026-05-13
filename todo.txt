@@ -1,3 +1,1 @@
-light mode dark mode
 message preview
-time
