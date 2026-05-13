@@ -14,8 +14,14 @@ let selectedId;
 let users;
 
 function init() {
+    const saved = localStorage.getItem("theme");
+    if (saved == "light") {
+        document.body.classList.add("light");
+    }
+
     document.getElementById("btn-send").addEventListener("click", msgSend);
     document.getElementById("btnConnect").addEventListener("click", connectToSocket);
+    document.getElementById("btnRegister").addEventListener("click", register);
     document.getElementById("dm-input").onkeydown = (e) => {
         if (e.key == "Enter") { msgSend(e); }
     }
@@ -41,6 +47,10 @@ async function connectToSocket() {
         document.getElementById(id + "-dot").classList.add("offline-dot")
     })
 
+    socket.on("new-user",()=>{
+        getUsers();
+    })
+
     socket.on("msg-send", (msg) => {
         messages.push(msg);
         displayPreview(msg);
@@ -63,10 +73,27 @@ async function connectToSocket() {
     })
 
     socket.on("send-id-init", (id) => {
-        self_id = parseInt(id);
+        self_id = id;
         enterApp();
     })
 
+}
+
+async function register() {
+    console.log("a")
+    const username = document.getElementById("reg-username");
+    const password = document.getElementById("reg-password");
+
+    if (!username.value || !password.value) return;
+
+    const response = await fetch(`/register/?username=${username.value}&password=${password.value}`)
+    const text = await response.text();
+
+    if (text == "registered") {
+        document.getElementById("login-email").value = username.value;
+        document.getElementById("login-password").value = password.value;
+        connectToSocket();
+    }
 }
 
 async function enterApp() {
@@ -111,6 +138,28 @@ function displayMessage(msg) {
     message.textContent = msg.message;
 
     block.appendChild(message);
+}
+
+function switchTab(tab) {
+    const loginButton = document.getElementById("loginButton");
+    const registerButton = document.getElementById("registerButton");;
+
+    const loginTab = document.getElementById("tab-login");
+    const registerTab = document.getElementById("tab-register");
+
+    if (tab == "login") {
+        loginButton.classList.add("active");
+        registerButton.classList.remove("active");
+
+        loginTab.classList.remove("hidden");
+        registerTab.classList.add("hidden");
+    } else if (tab == "register") {
+        registerButton.classList.add("active");
+        loginButton.classList.remove("active");
+
+        registerTab.classList.remove("hidden");
+        loginTab.classList.add("hidden");
+    }
 }
 
 async function getUsers() {

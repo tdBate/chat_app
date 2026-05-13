@@ -18,14 +18,14 @@
             <div class="auth-logo">ChatApp</div>
 
             <div class="auth-tabs">
-                <button class="tab-btn disabled active" onclick="switchTab('login')">Bejelentkezés</button>
-                <button class="tab-btn" disabled onclick="switchTab('register')">Regisztráció</button>
+                <button id="loginButton" class="tab-btn active" onclick="switchTab('login')">Bejelentkezés</button>
+                <button id="registerButton" class="tab-btn" onclick="switchTab('register')">Regisztráció</button>
             </div>
 
             <div id="tab-login" class="auth-form">
                 <div class="form-group">
-                    <label>Email cím</label>
-                    <input type="email" id="login-email" placeholder="pelda@email.com" />
+                    <label>Felhasználónév</label>
+                    <input type="email" id="login-email" placeholder="Felhasználónév" />
                 </div>
                 <div class="form-group">
                     <label>Jelszó</label>
@@ -33,7 +33,6 @@
                 </div>
                 <div id="login-error" class="error-msg hidden"></div>
                 <button class="btn-primary" id="btnConnect">Bejelentkezés</button>
-                <p class="auth-hint">Demo: <strong>teszt@email.com</strong> / <strong>jelszo123</strong></p>
             </div>
 
             <div id="tab-register" class="auth-form hidden">
@@ -42,16 +41,12 @@
                     <input type="text" id="reg-username" placeholder="Felhasználónév" />
                 </div>
                 <div class="form-group">
-                    <label>Email cím</label>
-                    <input type="email" id="reg-email" placeholder="pelda@email.com" />
-                </div>
-                <div class="form-group">
                     <label>Jelszó</label>
                     <input type="password" id="reg-password" placeholder="Min. 6 karakter" />
                 </div>
                 <div id="reg-error" class="error-msg hidden"></div>
                 <div id="reg-success" class="success-msg hidden"></div>
-                <button class="btn-primary" onclick="handleRegister()">Regisztráció</button>
+                <button id="btnRegister" class="btn-primary">Regisztráció</button>
             </div>
         </div>
     </div>

@@ -5,7 +5,6 @@ import { Socket, Server } from "socket.io";
 import http from "http"
 import { Message } from "./modules/Message.js";
 import fs from "node:fs";
-
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const base_path = path.join(__dirname, "..", "client");
@@ -22,8 +21,8 @@ io.use((socket, next) => {
     const username = socket.handshake.auth.username;
     const password = socket.handshake.auth.password;
     if (!username) return;
-    const users = JSON.parse(fs.readFileSync(path.join(__dirname, "data", "users.json")).toString());
-    users.forEach(element => {
+    const usersjson = JSON.parse(fs.readFileSync(path.join(__dirname, "data", "users.json")).toString());
+    usersjson.forEach(element => {
         if (element.username == username && element.password == password) {
             socket.username = username;
             socket.id = element.id;
@@ -76,13 +75,41 @@ app.get("/messages", (req, res) => {
 })
 
 app.get("/users", (req, res) => {
-    const users = JSON.parse(fs.readFileSync(path.join(__dirname, "data", "users.json")).toString());
-    res.status(200).send(users);
+    const usersjson = JSON.parse(fs.readFileSync(path.join(__dirname, "data", "users.json")).toString());
+    res.status(200).send(usersjson);
 })
 
 app.get("/isuseractive", (req, res) => {
     if (users.some(user => user.id == req.query.id)) { res.status(200).send(true); return; }
     res.status(200).send(false);
+})
+
+app.get("/register", (req, res) => {
+    const username = req.query.username;
+    const password = req.query.password;
+    if (!username || !password) { res.status(405).send("denied"); return;}
+
+    const usersjson = JSON.parse(fs.readFileSync(path.join(__dirname, "data", "users.json")));
+    if (usersjson.some(user=>username==user.username)) {res.status(405).send("denied"); return;}
+
+    //generate id
+    let id;
+    while (true) {
+        id = Math.floor(Math.random() * 10000).toString().padStart(4, "0");
+        if (!usersjson.some(user=>user.id == id)) {break;}
+    }
+
+    usersjson.push({"username": username, "password":password, "id":id});
+    fs.writeFileSync(path.join(__dirname, "data", "users.json"),JSON.stringify(usersjson));
+
+    //add to messages.json
+    const json_path = path.join(__dirname, "data", "messages.json");
+    let data = JSON.parse(fs.readFileSync(json_path).toString());
+    data.push({"id":id,"messages":[]})
+    fs.writeFileSync(json_path,JSON.stringify(data));
+
+    io.emit("new-user");
+    res.status(200).send("registered");
 })
 
 server.listen(3000, () => {
