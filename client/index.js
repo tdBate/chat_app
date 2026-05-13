@@ -17,7 +17,7 @@ function init() {
     document.getElementById("btn-send").addEventListener("click", msgSend);
     document.getElementById("btnConnect").addEventListener("click", connectToSocket);
     document.getElementById("dm-input").onkeydown = (e) => {
-        if (e.key == "Enter") {msgSend(e);}
+        if (e.key == "Enter") { msgSend(e); }
     }
 }
 
@@ -31,8 +31,8 @@ async function connectToSocket() {
         }
     })
 
-    socket.on("user-connected", (id)=>{
-        document.getElementById(id+"-dot").className = "";
+    socket.on("user-connected", (id) => {
+        document.getElementById(id + "-dot").className = "";
         document.getElementById(id + "-dot").classList.add("online-dot")
     })
 
@@ -43,6 +43,7 @@ async function connectToSocket() {
 
     socket.on("msg-send", (msg) => {
         messages.push(msg);
+        displayPreview(msg);
         const fromUser = getUserFromId(msg.user_id);
         if (selectedId == msg.user_id) {
             renderDMMessages(fromUser)
@@ -50,7 +51,7 @@ async function connectToSocket() {
             const notification = new Notification(`New message from ${fromUser.username}`, {
                 body: msg.message
             });
-            notification.onclick = ()=>{switchSelectedUser(fromUser);}
+            notification.onclick = () => { switchSelectedUser(fromUser); }
         };
 
         if (document.hidden) {
@@ -68,14 +69,14 @@ async function connectToSocket() {
 
 }
 
-function enterApp() {
+async function enterApp() {
     //profile footer
     const username = document.getElementById("login-email").value;
     document.getElementById("sidebar-username").innerText = username;
     document.getElementById("sidebar-avatar").innerText = username.charAt(0);
 
+    await getUsers();
     getMsg();
-    getUsers();
 
     document.getElementById("page-auth").classList.remove("active");
     document.getElementById("page-auth").classList.add("hidden");
@@ -98,6 +99,7 @@ function msgSend(e) {
     socket.emit("msg-send", m1);
 
     renderDMMessages(getUserFromId(toUserId));
+    displayPreview(m1);
 
     //clear input
     document.getElementById("dm-input").value = "";
@@ -117,13 +119,13 @@ async function getUsers() {
 
     const container = document.getElementById("sidebar-users");
     container.innerHTML = "";
-    users.forEach(async(element) => {
+    users.forEach(async (element) => {
         if (element.id != self_id) {
             //is user active
             let dotClass = "offline-dot";
-            const response = await fetch("/isuseractive/?id="+element.id);
+            const response = await fetch("/isuseractive/?id=" + element.id);
             const state = await response.text();
-            if (state == "true") {dotClass = "online-dot";}
+            if (state == "true") { dotClass = "online-dot"; }
 
             const item = document.createElement("div");
             item.className = "user-item"
@@ -131,11 +133,11 @@ async function getUsers() {
             <div class="avatar prevent-select">${element.username.charAt(0)}</div>
                 <div class="user-item-info">
                 <div class="user-item-name">${element.username}</div>
-                <div class="user-item-preview"></div>
+                <div id="${element.id}-message-preview" class="user-item-preview"></div>
             </div>
             <div id="${element.id}-dot" class="${dotClass}"></div>`;
             item.onclick = () => {
-                try { container.querySelector(".active").classList.remove("active"); } catch{}
+                try { container.querySelector(".active").classList.remove("active"); } catch { }
                 item.classList.add("active");
                 switchSelectedUser(element);
             }
@@ -145,7 +147,7 @@ async function getUsers() {
 }
 
 function getUserFromId(id) {
-    return users.find(element=> parseInt(element.id) == id);
+    return users.find(element => parseInt(element.id) == id);
 }
 
 function switchSelectedUser(user) {
@@ -172,10 +174,6 @@ function renderDMMessages(user) {
                 row.className += " own";
                 //avatarId = element.user_id;
             }
-            
-            
-
-            
 
             //date
             const date = new Date(element.date);
@@ -185,12 +183,12 @@ function renderDMMessages(user) {
 
             if (date.getFullYear() == now.getFullYear() && date.getMonth() == now.getMonth() && date.getDate() == now.getDate()) {
                 dateDisplayString = date.getHours().toString().padStart(2, "0") + ":" + date.getMinutes().toString().padStart(2, "0");
-            } else if (date.getFullYear() == now.getFullYear() && date.getMonth() == now.getMonth() && date.getDate() == (now.getDate()-1)) {
+            } else if (date.getFullYear() == now.getFullYear() && date.getMonth() == now.getMonth() && date.getDate() == (now.getDate() - 1)) {
                 dateDisplayString = "yesterday " + date.getHours().toString().padStart(2, "0") + ":" + date.getMinutes().toString().padStart(2, "0");
             } else {
                 dateDisplayString = date.getFullYear() + ". " + date.getMonth() + ". " + date.getDate() + ". " + date.getHours().toString().padStart(2, "0") + ":" + date.getMinutes().toString().padStart(2, "0");
             }
-            
+
             row.innerHTML = `
                 <div class="avatar prevent-select" style="width:28px;height:28px;font-size:0.78rem;">${getUserFromId(avatarId).username.charAt(0)}</div>
                 <div>
@@ -218,6 +216,21 @@ async function getMsg() {
     const response = await fetch("/messages/?id=" + self_id);
     const data = await response.json();
     messages = data;
+    for (let i = messages.length - 1; i >= 0; i--) {
+        displayPreview(messages[i], true);
+    }
+}
+
+function displayPreview(message, start = false) {
+    let previewId = message.user_id;
+    if (message.user_id == self_id) {
+        previewId = message.toId;
+    }
+
+    preview = document.getElementById(previewId + "-message-preview");
+    if (preview.innerText == "" || !start) {
+        preview.innerText = message.message;
+    }
 }
 
 function toggleTheme() {
