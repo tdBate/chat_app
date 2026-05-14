@@ -22,14 +22,14 @@ io.use((socket, next) => {
     const password = socket.handshake.auth.password;
     if (!username) return;
     const usersjson = JSON.parse(fs.readFileSync(path.join(__dirname, "data", "users.json")).toString());
-    usersjson.forEach(element => {
+    for (const element of usersjson) {
         if (element.username == username && element.password == password) {
             socket.username = username;
             socket.id = element.id;
             next();
             return;
         }
-    });
+    };
 
 })
 
@@ -53,9 +53,13 @@ io.on("connection", (socket) => {
     })
 
     socket.on("disconnect", () => {
-        console.log(socket.username + "-" + socket.id + " disconnected");
         users.splice(users.indexOf(socket), 1);
-        socket.broadcast.emit("user-disconnected", socket.id);
+
+        if (!users.some(element=>element.id == socket.id)) {
+            console.log(socket.username + "-" + socket.id + " disconnected");
+            socket.broadcast.emit("user-disconnected", socket.id);
+        }
+        
     })
 })
 

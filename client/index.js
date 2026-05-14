@@ -58,17 +58,11 @@ async function connectToSocket() {
         if (selectedId == msg.user_id) {
             renderDMMessages(fromUser)
         } else if (!document.hidden) {
-            const notification = new Notification(`New message from ${fromUser.username}`, {
-                body: msg.message
-            });
-            notification.onclick = () => { switchSelectedUser(fromUser); }
+            newMessageNotification(msg);
         };
 
         if (document.hidden) {
-            const notification = new Notification(`New message from ${fromUser.username}`, {
-                body: msg.message
-            });
-            notification.onclick = () => { switchSelectedUser(fromUser); }
+            newMessageNotification(msg);
         } //ezt szépíteni
     })
 
@@ -76,6 +70,15 @@ async function connectToSocket() {
         self_id = id;
         enterApp();
     })
+
+}
+
+function newMessageNotification(msg) {
+    const fromUser = getUserFromId(msg.user_id);
+    const notification = new Notification(`New message from ${fromUser.username}`, {
+        body: msg.message
+    });
+    notification.onclick = () => { switchSelectedUser(fromUser); }
 
 }
 
@@ -121,7 +124,7 @@ function msgSend(e) {
 
     e.preventDefault();
     const toUserId = selectedId;
-    m1 = new Message(text, new Date().toISOString(), self_id, toUserId);
+    const m1 = new Message(text, new Date().toISOString(), self_id, toUserId);
     messages.push(m1);
     socket.emit("msg-send", m1);
 
@@ -168,7 +171,7 @@ async function getUsers() {
 
     const container = document.getElementById("sidebar-users");
     container.innerHTML = "";
-    users.forEach(async (element) => {
+    for (const element of users) {
         if (element.id != self_id) {
             //is user active
             let dotClass = "offline-dot";
@@ -192,7 +195,7 @@ async function getUsers() {
             }
             container.appendChild(item);
         }
-    })
+    }
 }
 
 function getUserFromId(id) {
@@ -230,12 +233,12 @@ function renderDMMessages(user) {
 
             let dateDisplayString = "error";
 
-            if (date.getFullYear() == now.getFullYear() && date.getMonth() == now.getMonth() && date.getDate() == now.getDate()) {
+            if (date.getFullYear() == now.getFullYear() && date.getMonth() == now.getMonth() && date.getDate() == now.getDate()) { //ma
                 dateDisplayString = date.getHours().toString().padStart(2, "0") + ":" + date.getMinutes().toString().padStart(2, "0");
-            } else if (date.getFullYear() == now.getFullYear() && date.getMonth() == now.getMonth() && date.getDate() == (now.getDate() - 1)) {
+            } else if (date.getFullYear() == now.getFullYear() && date.getMonth() == now.getMonth() && date.getDate() == (now.getDate() - 1)) { //tegnap
                 dateDisplayString = "yesterday " + date.getHours().toString().padStart(2, "0") + ":" + date.getMinutes().toString().padStart(2, "0");
-            } else {
-                dateDisplayString = date.getFullYear() + ". " + date.getMonth() + ". " + date.getDate() + ". " + date.getHours().toString().padStart(2, "0") + ":" + date.getMinutes().toString().padStart(2, "0");
+            } else { //bármi máskor
+                dateDisplayString = date.getFullYear() + ". " + (date.getMonth()+1) + ". " + date.getDate() + ". " + date.getHours().toString().padStart(2, "0") + ":" + date.getMinutes().toString().padStart(2, "0");
             }
 
             row.innerHTML = `
@@ -276,7 +279,7 @@ function displayPreview(message, start = false) {
         previewId = message.toId;
     }
 
-    preview = document.getElementById(previewId + "-message-preview");
+    const preview = document.getElementById(previewId + "-message-preview");
     if (preview.innerText == "" || !start) {
         preview.innerText = message.message;
     }
